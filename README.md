@@ -9,3 +9,13 @@ Simple tool to execute linux command and store result into klipper variables
 ## Requirement
 - Python3
 - Enable <code>save_variables</code> in klipper config.
+
+## Install
+
+<pre>
+cd 
+git clone https://github.com/ChipCE/klipper-lunar-penguin
+cd klipper-lunar-penguin
+chmod +x install.sh
+./install.sh
+</pre>

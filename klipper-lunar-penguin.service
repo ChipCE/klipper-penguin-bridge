@@ -1,0 +1,14 @@
+[Unit]
+Description=Custom Klipper variable
+Wants=network.target
+After=network.target
+
+[Service]
+WorkingDirectory=/home/pi/klipper-lunar-penguin/
+ExecStart=/home/pi/klipper-lunar-penguin/.venv/bin/python /home/pi/klipper-lunar-penguin/klipper-lunar-penguin.py
+Restart=always
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
