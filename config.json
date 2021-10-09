@@ -1,0 +1,24 @@
+{
+    "variablesFile": "/home/pi/klipper_config/variables.cfg",
+    "moonrakerPort": 7125,
+    "apiTimeout": 2,
+    "updateInterval": 60,
+    "taskList": [
+      {
+        "command": "/usr/sbin/ifconfig eth0 | grep -oE \"inet \\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b\" | grep -oE \"\\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b\"",
+        "execTimeout": 1,
+        "variableName": "eth0_ip_addr"
+      },
+      {
+        "command": "/usr/sbin/ifconfig wlan0 | grep -oE \"inet \\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b\" | grep -oE \"\\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b\"",
+        "execTimeout": 1,
+        "variableName": "wlan0_ip_addr"
+      },
+      {
+        "command": "uname -r",
+        "execTimeout": 1,
+        "variableName": "kernel_version"
+      }
+    ]
+  }
+  
