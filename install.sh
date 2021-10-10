@@ -12,4 +12,5 @@ yes | sudo cp -rf klipper-lunar-penguin.service /etc/systemd/system/klipper-luna
 
 sudo systemctl daemon-reload
 sudo systemctl start klipper-lunar-penguin
+sudo systemctl enable klipper-lunar-penguin
  
