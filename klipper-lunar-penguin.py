@@ -5,7 +5,7 @@ import requests
 import configparser
 import subprocess
 
-VERSION = "0.1b-20211009"
+VERSION = "0.1b-20211012"
 CONFIG_FILE = "./config.json"
 
 
@@ -73,18 +73,18 @@ class TaskRunner(object):
 
     def _getVarValue(self, varName):
         try:
-            return self.varList["Variables"][varName].replace("'","")
+            return self.varList["Variables"][varName].replace("'", "")
         except Exception:
             return ""
 
-    def _getExecResult(self, command, cwd=None):
-        print("#EXEC :",command)
+    def _getExecResult(self, command, cwd=None, timeout=1):
+        print("#EXEC :", command)
         proc = subprocess.Popen(
             [command], cwd=cwd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
         stdout = ""
         stderr = ""
         try:
-            (stdout, stderr) = proc.communicate(1)
+            (stdout, stderr) = proc.communicate(timeout=timeout)
         except Exception as e:
             print("Exception", e)
             print("Error", stderr)
@@ -97,11 +97,14 @@ class TaskRunner(object):
         return resultStr
 
     def _updateVarValue(self, varName, varValue, apiTimeout):
-        postData = {"commands": ["SAVE_VARIABLE VARIABLE=" + varName + " VALUE=\'\"" + varValue + "\"\'"]}
-        url = "http://localhost:" + str(self.config.moonrakerPort) + "/api/printer/command"
+        postData = {"commands": [
+            "SAVE_VARIABLE VARIABLE=" + varName + " VALUE=\'\"" + varValue + "\"\'"]}
+        url = "http://localhost:" + \
+            str(self.config.moonrakerPort) + "/api/printer/command"
 
         try:
-            rawResult = requests.post(url, data=str(json.dumps(postData)), headers={'Content-type': 'application/json', 'Accept': 'application/json'}, timeout=apiTimeout)
+            rawResult = requests.post(url, data=str(json.dumps(postData)), headers={
+                                      'Content-type': 'application/json', 'Accept': 'application/json'}, timeout=apiTimeout)
             if rawResult.status_code in range(200, 300):
                 return True
         except Exception as e:
@@ -109,19 +112,20 @@ class TaskRunner(object):
             return False
         return False
 
-
     def run(self):
         # read current var list
         if self._readVarList():
             for task in self.config.taskList:
                 print("")
-                resultStr = self._getExecResult(command=task.command)
+                resultStr = self._getExecResult(
+                    command=task.command, timeout=task.execTimeout)
                 savedValue = self._getVarValue(task.variableName)
-                print("#SAVED :",savedValue)
-                print("#RESULT :",resultStr)
+                print("#SAVED :", savedValue)
+                print("#RESULT :", resultStr)
                 if resultStr != savedValue:
-                    apiResult = self._updateVarValue(task.variableName, resultStr, self.config.apiTimeout)
-                    print("#UPDATE :",apiResult)
+                    apiResult = self._updateVarValue(
+                        task.variableName, resultStr, self.config.apiTimeout)
+                    print("#UPDATE :", apiResult)
                 else:
                     print("#UPDATE : skipped")
 
