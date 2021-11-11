@@ -1,5 +1,5 @@
 {
-    "variablesFile": "/home/pi/klipper_config/variables.cfg",
+    "variablesFile": "/home/pi/klipper_config/variable.cfg",
     "moonrakerPort": 7125,
     "apiTimeout": 2,
     "updateInterval": 60,
