@@ -1,0 +1,14 @@
+[Unit]
+Description=Tool to sync data with klipper
+Wants=network.target
+After=network.target
+
+[Service]
+WorkingDirectory=/opt/klipper-penguin-bridge/
+ExecStart=/opt/klipper-penguin-bridge/.venv/bin/python /opt/klipper-penguin-bridge/klipper-penguin-bridge.py
+Restart=always
+StandardOutput=null
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
