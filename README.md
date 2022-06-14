@@ -1,4 +1,4 @@
-# klipper-lunar-penguin
+# klipper-penguin-bridge
 
 Simple tool to execute linux command and store result into klipper variables
 
@@ -17,8 +17,8 @@ Simple tool to execute linux command and store result into klipper variables
 
 <pre>
 cd 
-git clone https://github.com/ChipCE/klipper-lunar-penguin
-cd klipper-lunar-penguin
+git clone https://github.com/ChipCE/klipper-penguin-bridge
+cd klipper-penguin-bridge
 chmod +x install.sh
 ./install.sh
 </pre>
