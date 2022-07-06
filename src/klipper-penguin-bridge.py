@@ -101,7 +101,7 @@ class TaskRunner(object):
 
     def _getCurrentVariableState(self):
         try:
-            url = "http://localhost:" + str(self.config.moonrakerPort) + "/printer/objects/query?gcode_macro KLIPPER_PENGUIN_BRIDGE"
+            queryUrl = "http://localhost:" + str(self.config.moonrakerPort) + "/printer/objects/query?gcode_macro KLIPPER_PENGUIN_BRIDGE"
             rawResult = requests.get(queryUrl, timeout = self.config["timeout"])
             if rawResult.status_code in range(200, 300):
                 return rawResult.json()["result"]["status"]["gcode_macro KLIPPER_PENGUIN_BRIDGE"]
