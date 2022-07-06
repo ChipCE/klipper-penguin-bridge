@@ -2,14 +2,14 @@ import time
 import schedule
 import json
 import requests
-import configparser
 import subprocess
 import logging
 
 VERSION = "0.1b-20211012"
 CONFIG_FILE = "./config.json"
-LOG_LEVEL = logging.ERROR
-LOG_FILE = "/var/log/klipper-penguin-bridge.log"
+LOG_LEVEL = logging.DEBUG
+# LOG_FILE = "/var/log/klipper-penguin-bridge.log"
+LOG_FILE = "./klipper-penguin-bridge.log"
 
 
 class SystemConfig(object):
@@ -19,8 +19,10 @@ class SystemConfig(object):
         with open(configFile) as config_file:
             configJson = json.loads(config_file.read())
         # check app config
-        if "moonrakerPort" not in configJson or "updateInterval" not in configJson or "taskList" not in configJson or "apiTimeout" not in configJson:
+        if "moonrakerHost" not in configJson or "moonrakerPort" not in configJson or "updateInterval" not in configJson or "taskList" not in configJson or "apiTimeout" not in configJson:
             raise ValueError("Missing config parameter(s)")
+        if type(configJson["moonrakerHost"]) != str or configJson["moonrakerHost"] == "":
+            raise ValueError("Invalid moonrakerHost")
         if type(configJson["moonrakerPort"]) != int or configJson["moonrakerPort"] <= 0:
             raise ValueError("Invalid moonrakerPort")
         if type(configJson["apiTimeout"]) != int or configJson["apiTimeout"] <= 0:
@@ -30,6 +32,7 @@ class SystemConfig(object):
         if type(configJson["taskList"]) != list or len(configJson["taskList"]) <= 0:
             raise ValueError("Invalid taskList")
         
+        self.moonrakerHost = configJson["moonrakerHost"]
         self.moonrakerPort = configJson["moonrakerPort"]
         self.apiTimeout = configJson["apiTimeout"]
         self.updateInterval = configJson["updateInterval"]
@@ -43,7 +46,7 @@ class SystemConfig(object):
 
 class Task(object):
     def __init__(self, rawObj):
-        if "command" not in rawObj or "execTimeout" not in rawObj or "variableName" not in rawObj:
+        if "command" not in rawObj or "execTimeout" not in rawObj or "variableName" not in rawObj or "isNumber" not in rawObj:
             raise ValueError("Missing parameter(s)")
         if type(rawObj["command"]) != str or rawObj["command"] == "":
             raise ValueError("Invalid command")
@@ -51,6 +54,8 @@ class Task(object):
             raise ValueError("Invalid variableName")
         if type(rawObj["execTimeout"]) != int or rawObj["execTimeout"] <= 0:
             raise ValueError("Invalid execTimeout")
+        if not isinstance(rawObj["isNumber"], bool):
+            raise ValueError("Invalid isNumber")
 
         self.command = rawObj["command"]
         self.execTimeout = rawObj["execTimeout"]
@@ -68,6 +73,8 @@ class TaskRunner(object):
         stderr = ""
         try:
             (stdout, stderr) = proc.communicate(timeout=timeout)
+            logging.debug("StdOut" + str(stdout))
+            logging.debug("StdErr" + str(stderr))
         except Exception as e:
             logging.error("Exception" + str(e))
             logging.error("Error" + str(stderr))
@@ -79,7 +86,7 @@ class TaskRunner(object):
 
         return resultStr
 
-    def _updateVarValue(self, varName, isNumber, varValue, apiTimeout):
+    def _updateVarValue(self, varName, isNumber, varValue):
 
         postData = ""
         if isNumber:
@@ -87,11 +94,11 @@ class TaskRunner(object):
         else:
             postData = {"commands": ["SET_GCODE_VARIABLE MACRO=KLIPPER_PENGUIN_BRIDGE VARIABLE=" + varName + " VALUE=\'\"" + varValue + "\"\'"]}
 
-        url = "http://localhost:" + str(self.config.moonrakerPort) + "/api/printer/command"
+        url = "http://" + self.config.moonrakerHost + ":" + str(self.config.moonrakerPort) + "/api/printer/command"
 
         try:
             rawResult = requests.post(url, data=str(json.dumps(postData)), headers={
-                                      'Content-type': 'application/json', 'Accept': 'application/json'}, timeout=apiTimeout)
+                                      'Content-type': 'application/json', 'Accept': 'application/json'}, timeout=self.config.apiTimeout)
             if rawResult.status_code in range(200, 300):
                 return True
         except Exception as e:
@@ -101,8 +108,8 @@ class TaskRunner(object):
 
     def _getCurrentVariableState(self):
         try:
-            queryUrl = "http://localhost:" + str(self.config.moonrakerPort) + "/printer/objects/query?gcode_macro KLIPPER_PENGUIN_BRIDGE"
-            rawResult = requests.get(queryUrl, timeout = self.config["timeout"])
+            queryUrl = "http://" + self.config.moonrakerHost + ":" + str(self.config.moonrakerPort) + "/printer/objects/query?gcode_macro KLIPPER_PENGUIN_BRIDGE"
+            rawResult = requests.get(queryUrl, timeout = self.config.apiTimeout)
             if rawResult.status_code in range(200, 300):
                 return rawResult.json()["result"]["status"]["gcode_macro KLIPPER_PENGUIN_BRIDGE"]
             else:
@@ -118,9 +125,9 @@ class TaskRunner(object):
 
         try:
             if isNumber:
-                return float(resultValue) != currentState["variableName"]
+                return float(resultValue) != currentState[variableName]
             else:
-                return resultValue != currentState["variableName"]
+                return resultValue != currentState[variableName]
         except Exception as e:
             logging.error("Exception" + str(e))
             return False
@@ -134,7 +141,7 @@ class TaskRunner(object):
             resultStr = self._getExecResult(command=task.command, timeout=task.execTimeout)
             logging.info("\t" + "RESULT : " + resultStr)
             if self._needUpdate(resultStr, task.variableName, task.isNumber, currentState):
-                if self._updateVarValue(task.variableName,task.isNumber, resultStr, self.config.apiTimeout):
+                if self._updateVarValue(task.variableName,task.isNumber, resultStr):
                     logging.info("\t" + "Api update success")
                 else:
                     logging.info("\t" + "Api update failed")

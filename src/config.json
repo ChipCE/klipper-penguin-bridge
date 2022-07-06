@@ -1,4 +1,5 @@
 {
+    "moonrakerHost" : "192.168.0.17",
     "moonrakerPort": 7125,
     "apiTimeout": 2,
     "updateInterval": 15,
@@ -23,9 +24,9 @@
         "isNumber" : false
       },
       {
-        "command": "echo $RANDOM",
+        "command": "date +%s",
         "execTimeout": 1,
-        "variableName": "random_number",
+        "variableName": "unix_time",
         "isNumber" : true
       }
     ]
