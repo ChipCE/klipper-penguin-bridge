@@ -25,6 +25,7 @@ yes | cp -R "src/config.json" "$INSTALL_DIR"
 yes | cp -R "src/klipper_penguin_bridge.cfg" "$KLIPPER_CONFIG_DIR"
 # change file permission
 chown $KLIPPER_USER "$KLIPPER_CONFIG_DIR/klipper_penguin_bridge.cfg"
+chmod 664 "$KLIPPER_CONFIG_DIR/klipper_penguin_bridge.cfg"
 # copy python requirements
 yes | cp -R "requirements.txt" "$APP_DIR"
 # copy service file
