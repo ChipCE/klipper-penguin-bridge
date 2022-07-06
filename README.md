@@ -23,8 +23,9 @@ sudo apt-get install python3 python3-pip python3-venv
 - Edit <code>src/config.json</code> file, add config for above variables and commands
 
 <pre>
-cd 
-git clone https://github.com/ChipCE/klipper-penguin-bridge
+mkdir ~/code
+cd ~/code
+git clone https://github.com/GUTENBERG3DP/klipper-penguin-bridge
 cd klipper-penguin-bridge
 chmod +x install.sh
 ./install.sh
