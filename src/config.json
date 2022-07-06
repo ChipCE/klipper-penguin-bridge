@@ -1,0 +1,24 @@
+{
+    "moonrakerPort": 7125,
+    "apiTimeout": 2,
+    "updateInterval": 15,
+    "debug" : false,
+    "taskList": [
+      {
+        "command": "ip addr show eth0 | grep 'inet' | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1 | grep -oE \"\\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b\"",
+        "execTimeout": 1,
+        "variableName": "eth0_ip"
+      },
+      {
+        "command": "ip addr show wlan0 | grep 'inet' | head -n 1 | awk '/inet/ {print $2}' | cut -d'/' -f1 | grep -oE \"\\b([0-9]{1,3}\\.){3}[0-9]{1,3}\\b\"",
+        "execTimeout": 1,
+        "variableName": "wlan0_ip"
+      },
+      {
+        "command": "uname -r",
+        "execTimeout": 1,
+        "variableName": "kernel_version"
+      }
+    ]
+  }
+  
