@@ -7,9 +7,9 @@ import logging
 
 VERSION = "0.1b-20211012"
 CONFIG_FILE = "./config.json"
-LOG_LEVEL = logging.DEBUG
-# LOG_FILE = "/var/log/klipper-penguin-bridge.log"
-LOG_FILE = "./klipper-penguin-bridge.log"
+LOG_LEVEL = logging.ERROR
+LOG_FILE = "/var/log/klipper-penguin-bridge.log"
+# LOG_FILE = "./klipper-penguin-bridge.log"
 
 
 class SystemConfig(object):
