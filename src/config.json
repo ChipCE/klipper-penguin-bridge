@@ -1,5 +1,5 @@
 {
-    "moonrakerHost" : "192.168.0.17",
+    "moonrakerHost" : "localhost",
     "moonrakerPort": 7125,
     "apiTimeout": 2,
     "updateInterval": 15,
