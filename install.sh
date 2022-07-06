@@ -20,8 +20,8 @@ sudo apt-get install python3 python3-pip python3-venv
 mkdir -p "$APP_DIR"
 
 # copy files over
-yes | cp -R "src/klipper-penguin-bridge.py" "$INSTALL_DIR"
-yes | cp -R "src/config.json" "$INSTALL_DIR"
+yes | cp -R "src/klipper-penguin-bridge.py" "$APP_DIR"
+yes | cp -R "src/config.json" "$APP_DIR"
 yes | cp -R "src/klipper_penguin_bridge.cfg" "$KLIPPER_CONFIG_DIR"
 # change file permission
 chown $KLIPPER_USER "$KLIPPER_CONFIG_DIR/klipper_penguin_bridge.cfg"
