@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [[ $(/usr/bin/id -u) -ne 0 ]]; then
+    echo "Error : Root required!"
+    exit
+fi
+
 APP_DIR="/apps/klipperPenguinBridge/"
 
 systemctl stop klipper-penguin-bridge

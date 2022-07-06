@@ -8,7 +8,7 @@ import logging
 
 VERSION = "0.1b-20211012"
 CONFIG_FILE = "./config.json"
-LOG_LEVEL = logging.DEBUG
+LOG_LEVEL = logging.ERROR
 LOG_FILE = "/var/log/klipper-penguin-bridge.log"
 
 
@@ -55,7 +55,7 @@ class Task(object):
         self.command = rawObj["command"]
         self.execTimeout = rawObj["execTimeout"]
         self.variableName = rawObj["variableName"]
-
+        self.isNumber = rawObj["isNumber"]
 
 class TaskRunner(object):
     def __init__(self, config):
@@ -69,7 +69,7 @@ class TaskRunner(object):
         try:
             (stdout, stderr) = proc.communicate(timeout=timeout)
         except Exception as e:
-            logging.error("Exception" + str(3))
+            logging.error("Exception" + str(e))
             logging.error("Error" + str(stderr))
             return "none"
 
@@ -79,11 +79,15 @@ class TaskRunner(object):
 
         return resultStr
 
-    def _updateVarValue(self, varName, varValue, apiTimeout):
-        postData = {"commands": [
-            "SET_GCODE_VARIABLE MACRO=KLIPPER_PENGUIN_BRIDGE VARIABLE=" + varName + " VALUE=\'\"" + varValue + "\"\'"]}
-        url = "http://localhost:" + \
-            str(self.config.moonrakerPort) + "/api/printer/command"
+    def _updateVarValue(self, varName, isNumber, varValue, apiTimeout):
+
+        postData = ""
+        if isNumber:
+            postData = {"commands": ["SET_GCODE_VARIABLE MACRO=KLIPPER_PENGUIN_BRIDGE VARIABLE=" + varName + " VALUE=" + varValue ]}
+        else:
+            postData = {"commands": ["SET_GCODE_VARIABLE MACRO=KLIPPER_PENGUIN_BRIDGE VARIABLE=" + varName + " VALUE=\'\"" + varValue + "\"\'"]}
+
+        url = "http://localhost:" + str(self.config.moonrakerPort) + "/api/printer/command"
 
         try:
             rawResult = requests.post(url, data=str(json.dumps(postData)), headers={
@@ -95,16 +99,47 @@ class TaskRunner(object):
             return False
         return False
 
+    def _getCurrentVariableState(self):
+        try:
+            url = "http://localhost:" + str(self.config.moonrakerPort) + "/printer/objects/query?gcode_macro KLIPPER_PENGUIN_BRIDGE"
+            rawResult = requests.get(queryUrl, timeout = self.config["timeout"])
+            if rawResult.status_code in range(200, 300):
+                return rawResult.json()["result"]["status"]["gcode_macro KLIPPER_PENGUIN_BRIDGE"]
+            else:
+                logging.error("Failed to get current variable state")
+                return None
+        except Exception as e:
+            logging.error("exception" + str(e))
+            return None
+
+    def _needUpdate(self,resultValue, variableName, isNumber,currentState):
+        if currentState == None:
+            return False
+
+        try:
+            if isNumber:
+                return float(resultValue) != currentState["variableName"]
+            else:
+                return resultValue != currentState["variableName"]
+        except Exception as e:
+            logging.error("Exception" + str(e))
+            return False
+
+
     def run(self):
         logging.info("# Running task route...")
+        currentState = self._getCurrentVariableState()
         for task in self.config.taskList:
             logging.info("\t" + "# Exec command for " + task.variableName + " variable")
             resultStr = self._getExecResult(command=task.command, timeout=task.execTimeout)
             logging.info("\t" + "RESULT : " + resultStr)
-            if self._updateVarValue(task.variableName, resultStr, self.config.apiTimeout):
-                logging.info("\t" + "Api update success")
+            if self._needUpdate(resultStr, task.variableName, task.isNumber, currentState):
+                if self._updateVarValue(task.variableName,task.isNumber, resultStr, self.config.apiTimeout):
+                    logging.info("\t" + "Api update success")
+                else:
+                    logging.info("\t" + "Api update failed")
             else:
-                logging.info("\t" + "Api update failed")
+                logging.info("\t" + "Skip api update")
 
 
 def main():
